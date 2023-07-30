@@ -1,2 +1,2 @@
 # ubiquitous-tensor-train
-It's just a rookie's attempt wowowowowoow
+It's just a rookie's attempt wowowowowoowow

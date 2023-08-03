@@ -1,5 +1,6 @@
 import tensorly as tl
 import sys
+import numpy as np
 sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 from tensorly.decomposition._base_decomposition import DecompositionMixin
 from tt.tt_tensor import validate_tt_rank, TTTensor
@@ -78,8 +79,51 @@ def tensor_train(input_tensor, rank, svd="truncated_svd", verbose=False):
 
     return TTTensor(factors)
 
+def truncated(sv, delta):
+    # 在tt_svd中使用,依据delta对奇异值矩阵进行截断
+    sv = sv[::-1] #逆序
+    sv = np.power(sv, 2)
+    sv = np.cumsum(sv)
+    r = sv.size
+    for i in range(sv.size):
+        if sv[i] <= np.power(delta, 2):
+            r -= 1
+    return r
 
 
+def tt_svd(input_tensor, rank, svd="truncated_svd", verbose=False):
+    '''
+    TT分解
+    Input:
+    X:给定的tensor
+    eps:分解精度
+    Return:
+    G:存放tt_core的列表
+    对给定张量X在eps分解精度下进行张量链分解，返回存放tt_core的列表G
+    在低阶的情况下，与tt_svd在分解的结果上相差并不大
+    '''
+    shp = np.array(input_tensor.shape)
+    L = len(shp)
+    R = [1 for x in range(L+1)]
+    G = [];C = input_tensor
+    for i in range(1,L):
+        row = R[i-1] * shp[i-1]
+        col = int(C.size / row)
+        C = tl.reshape(C,(row, col))
+        U,sigma,VT = svd_interface(C)
+        delta = rank/(np.sqrt(L-1))
+        # R[i] = truncated(U,sigma,VT,C,delta)
+        R[i] = truncated(sigma,delta*tl.norm(C))
+        print("R{}=".format(i),R[i])
+        U = U[:,:R[i]]
+        sigma = np.diag(sigma[:R[i]])
+        VT = VT[:R[i],:]
+        G.append(U.reshape((R[i-1],shp[i-1],R[i])))
+        C = np.dot(sigma, VT)
+    G.append(C.reshape(R[L-1],shp[L-1],R[L]))
+    return TTTensor(G)
+
+TT_FUNS = ["tensor_train","tt_svd"]
 
 class TensorTrain(DecompositionMixin):
     """Decompose a tensor into a matrix in tt-format
@@ -103,8 +147,9 @@ class TensorTrain(DecompositionMixin):
     tt_matrix
     """
 
-    def __init__(self, rank, svd="truncated_svd", verbose=False):
+    def __init__(self, rank=1.0, method="tt_svd", svd="truncated_svd", verbose=False):
         self.rank = rank
+        self.method = method
         self.svd = svd
         self.verbose = verbose
 
@@ -112,7 +157,16 @@ class TensorTrain(DecompositionMixin):
         '''
         fit and transform
         '''
-        self.decomposition_ = tensor_train(
+        if self.method == "tensor_train":
+            tt_fun = tensor_train
+        elif self.method == "tt_svd":
+            tt_fun = tt_svd
+        else:
+            raise ValueError(
+                f"Got method={self.method}. However, the possible choices are {TT_FUNS} or to pass a callable."
+            )
+        
+        self.decomposition_ = tt_fun(
             tensor, rank=self.rank, svd=self.svd, verbose=self.verbose
         )
         return self.decomposition_

@@ -183,6 +183,10 @@ def truncated_svd(matrix, n_eigenvecs=None, **kwargs):
     U, S, V = tl.svd(matrix, full_matrices=full_matrices)
     return U[:, :n_eigenvecs], S[:n_eigenvecs], V[:n_eigenvecs, :]
 
+
+
+
+
 def eps_svd(matrix, n_eigenvecs=None, **kwargs):
     pass
 

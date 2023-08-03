@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 
-path = 'D:/Files/VisualStudioCode/TT2.0/Ubiquitous-Train/experiments'
+path = 'D:/Files/VisualStudioCode/TT2.0/Ubiquitous-Train/storage'
 
 def load_data():
     """load data

@@ -170,3 +170,7 @@ class TensorTrain(DecompositionMixin):
             tensor, rank=self.rank, svd=self.svd, verbose=self.verbose
         )
         return self.decomposition_
+    
+
+    if __name__ == "__main__":
+        pass

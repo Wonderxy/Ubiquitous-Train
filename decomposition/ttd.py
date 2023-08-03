@@ -15,7 +15,7 @@ def tensor_train(input_tensor, rank, svd="truncated_svd", verbose=False):
 
     Parameters
     ----------
-    input_tensor : tensorly.tensor
+    input_tensor : tensorly.tensor/ndarray
     rank : {int, int list}
             maximum allowable TT rank of the factors
             if int, then this is the same for all the factors
@@ -80,7 +80,22 @@ def tensor_train(input_tensor, rank, svd="truncated_svd", verbose=False):
     return TTTensor(factors)
 
 def truncated(sv, delta):
-    # 在tt_svd中使用,依据delta对奇异值矩阵进行截断
+    """
+    Used in A, truncating the singular value matrix based on delta
+
+    Parameters
+    ----------
+    sv : ndarry, matrix
+    delta : float
+
+    Returns
+    -------
+    r : ttd_rank
+
+    References
+    ----------
+    .. [1] Ivan V. Oseledets. "Tensor-train decomposition", SIAM J. Scientific Computing, 33(5):2295–2317, 2011.
+    """
     sv = sv[::-1] #逆序
     sv = np.power(sv, 2)
     sv = np.cumsum(sv)
@@ -92,34 +107,46 @@ def truncated(sv, delta):
 
 
 def tt_svd(input_tensor, rank, svd="truncated_svd", verbose=False):
-    '''
-    TT分解
-    Input:
-    X:给定的tensor
-    eps:分解精度
-    Return:
-    G:存放tt_core的列表
-    对给定张量X在eps分解精度下进行张量链分解，返回存放tt_core的列表G
-    在低阶的情况下，与tt_svd在分解的结果上相差并不大
-    '''
+    """TT decomposition via recursive SVD
+
+    Parameters
+    ----------
+    input_tensor : tensorly.tensor/ndarray
+    rank : float, decomposition accuracy/eps
+    svd : str, default is 'truncated_svd'
+        function to use to compute the SVD, acceptable values in tensorly.SVD_FUNS
+    verbose : boolean, optional
+            level of verbosity
+
+    Returns
+    -------
+    factors : TT factors
+              order-3 tensors of the TT decomposition
+    """
     shp = np.array(input_tensor.shape)
     L = len(shp)
     R = [1 for x in range(L+1)]
-    G = [];C = input_tensor
+    G = []
+    C = input_tensor
+
     for i in range(1,L):
         row = R[i-1] * shp[i-1]
         col = int(C.size / row)
         C = tl.reshape(C,(row, col))
-        U,sigma,VT = svd_interface(C)
+        U,sigma,VT = np.linalg.svd(C,full_matrices=False)
+
         delta = rank/(np.sqrt(L-1))
         # R[i] = truncated(U,sigma,VT,C,delta)
         R[i] = truncated(sigma,delta*tl.norm(C))
         print("R{}=".format(i),R[i])
+
         U = U[:,:R[i]]
         sigma = np.diag(sigma[:R[i]])
         VT = VT[:R[i],:]
+
         G.append(U.reshape((R[i-1],shp[i-1],R[i])))
         C = np.dot(sigma, VT)
+
     G.append(C.reshape(R[L-1],shp[L-1],R[L]))
     return TTTensor(G)
 
@@ -172,5 +199,8 @@ class TensorTrain(DecompositionMixin):
         return self.decomposition_
     
 
-    if __name__ == "__main__":
-        pass
+if __name__ == "__main__":
+    from experiments.load_data import load_tensor
+    A = load_tensor(["ratingTensor"])[0]
+    tt = TensorTrain(rank=0,method="tt_svd").fit_transform(A) 
+    print(type(tt))

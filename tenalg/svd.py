@@ -1,5 +1,6 @@
 import warnings
 import tensorly as tl
+import numpy as np
 from tensorly.tenalg.proximal import soft_thresholding
 
 
@@ -184,13 +185,7 @@ def truncated_svd(matrix, n_eigenvecs=None, **kwargs):
     return U[:, :n_eigenvecs], S[:n_eigenvecs], V[:n_eigenvecs, :]
 
 
-
-
-
-def eps_svd(matrix, n_eigenvecs=None, **kwargs):
-    pass
-
-SVD_FUNS = ["truncated_svd", "symeig_svd", "randomized_svd"]
+SVD_FUNS = ["truncated_svd"]
 
 def svd_interface(
     matrix,
@@ -242,8 +237,6 @@ def svd_interface(
 
     if method == "truncated_svd":
         svd_fun = truncated_svd
-    elif method == "eps_svd":
-        svd_fun = eps_svd
     elif callable(method):
         svd_fun = method
     else:

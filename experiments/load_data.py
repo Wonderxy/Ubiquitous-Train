@@ -106,6 +106,17 @@ def load_data():
     return genreMat, occupationMat, ratingTensor, ageMat, genderMat
 
 def stroe_tensor(tensorList,tensorNameList):
+    """Store in tensor form
+
+    Parameters
+    ----------
+    tensorList:List of tensors that need to be stored
+    tensorNameList:Corresponding name
+
+    Returns
+    -------
+    None
+    """
     tNum = len(tensorList)
     tNameNum = len(tensorNameList)
     if tNum != tNameNum:
@@ -115,6 +126,15 @@ def stroe_tensor(tensorList,tensorNameList):
             pickle.dump(tensorList[i], fp)
 
 def load_tensor(tensorNameList):
+    """Load tensor
+    Parameters
+    ----------
+    tensorNameList:List of name of stored tensors
+
+    Returns
+    -------
+    List of corresponding tensors
+    """
     tNameNum = len(tensorNameList)
     tensorList = []
     for i in range(tNameNum):

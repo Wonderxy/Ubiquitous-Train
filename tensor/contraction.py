@@ -1,6 +1,6 @@
 import tensorly as  tl
 import numpy as np
-
+from treelib import Tree,Node
 
 def main_join(shpList,corList):
     """Tensor based multi tensor join operation
@@ -51,6 +51,36 @@ def main_join(shpList,corList):
     return FinalOrderList
 
 
+def create_tree(toList):
+    """According to the corresponding relationship between the tensors 
+    during the join operation, the Spanning tree structure
+
+    Parameters
+    ----------
+    toList : list[list], tensor corresponding to join together
+    
+    Returns
+    -------
+    joinTree : Tree,the relationship between whether each tensor is joined or not
+    """
+    #Convert tolist to sonList [[son1,son2,...],[],...]
+    sonList = []
+    for i in range(len(toList)):
+        sons = []
+        for j in range(1,len(toList)):
+            if toList[j] == i:
+                sons.append(j)
+        sonList.append(sons)
+    print(sonList)
+
+    joinTree = Tree()
+    joinTree.create_node(identifier=str(0),data=0)
+    for i in range(len(sonList)):
+        for j in sonList[i]:
+            joinTree.create_node(identifier=str(j),parent=str(i),data=j)   
+            
+    return joinTree
+
 
 def tensor_join(tList,toList,corList):
     """Tensor based multi tensor join operation
@@ -58,7 +88,7 @@ def tensor_join(tList,toList,corList):
     Parameters
     ----------
     tList : ndarray/tl.tensor[ndarray/tl.tensor], tensorList
-    rList : list[list], orderList
+    toList : list[list], tensor corresponding to join together
     corList : list, Tensor corresponding to join
 
     Returns
@@ -67,11 +97,9 @@ def tensor_join(tList,toList,corList):
         The Result of Joining Multiple Tensors
     """
     tNum = len(tList)
-    if tNum != len(toList) or tNum != len(corList):
-        raise ValueError("The number of tensors for joining should be the same, \
-                         including tensorList,toList and corList")
+
     
 
 if __name__ == "__main__":
-    t = main_join([(1,1,1,1,1,1,1),(1,1,1,1,1,1),(1,1,1,1,1,1)],[[],[(2,4),(1,4)],[(1,3,4),(2,4,5)]])
-    print(t)
+    tree = create_tree([0,0,0,2,3,0,3,2,7,7])
+    tree.show()

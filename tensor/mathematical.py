@@ -1,6 +1,6 @@
 import numpy as np
 
-def fit(tensorA,tensorB):
+def fit(tensor1,tensor2):
     """Calculating the Fit of Two Tensors
 
     Parameters
@@ -13,4 +13,4 @@ def fit(tensorA,tensorB):
     float
         The Fit of Two Tensors
     """
-    return 1-(np.linalg.norm(tensorA-tensorB)/np.linalg.norm(tensorB))
+    return 1-(np.linalg.norm(tensor1-tensor2)/np.linalg.norm(tensor2))

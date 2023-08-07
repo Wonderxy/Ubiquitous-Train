@@ -1,10 +1,46 @@
 import tensorly as  tl
 import numpy as np
 from treelib import Tree,Node
+import sys
+sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
+import tensor.base as tb
+from utils.forList import factorial_list
 
-def validate_join_tensor(tList):
+def validate_join_tensor(tList,toList,corList):
+    """Verify before operation, including the quantity of tensors and
+        the problem of whether the corresponding dimensions between corresponding tensors match
 
-    pass
+    Parameters
+    ----------
+    tList : list[tensor/ndarray], tensors List
+    toList : list[], tensor corresponding to join together
+    corList : list[[],[[join_orders],[join_orders_main]],[[],[]],...],The relationship between corresponding orders
+
+    Returns
+    -------
+    shpList : list[(shape)], shape List
+    lenList : list[], length List
+    """
+    #validate_tensor_num
+    tNum = len(tList)
+    if len(toList) != tNum or len(corList) != tNum:
+        raise ValueError("The number of parameters for tList,toList,corList needs to be equal")
+    #validate_join_order
+    shpList = []
+    for t in tList:
+        shpList.append(t.shape)
+    
+    for i in range(1,tNum):
+        toTensor = toList[i]
+        for j in range(len(corList[i][0])):
+            if shpList[i][corList[i][0][j]] != shpList[toTensor][corList[toTensor][1][j]]:
+                raise ValueError("Mismatch in the number of ordered dimensions between corresponding tensors")
+    
+    lenList = []
+    for shp in shpList:
+        lenList.append(len(shp))
+    
+    return shpList,lenList
 
 def create_tree(toList,lenList,corList):
     """According to the corresponding relationship between the tensors 
@@ -126,24 +162,29 @@ def tensor_join(tList,toList,corList):
 
     Returns
     -------
-    ndarray/tl.tensor
+    joinTensor : ndarray/tl.tensor
         The Result of Joining Multiple Tensors
     """
-    shpList = validate_join_tensor(tList)
-
-    join_tree = create_tree(toList,shpList,corList)
-
+    shpList,lenList = validate_join_tensor(tList,toList,corList)
+    join_tree = create_tree(toList,lenList,corList)
+    join_tree.show()
     FinalOrderList = tree_join(join_tree.get_node(join_tree.root),join_tree)
+
+    joinTensorLen = len(FinalOrderList)
+    joinTensorShape = []
+    for site in FinalOrderList:
+        joinTensorShape.append(shpList[site[0]][site[1]])
+    joinTensor = tl.tensor(np.zeros(joinTensorShape))
+    joinVector = tb.tensor_to_vec(joinTensor)
+    
+    for index in range(factorial_list(joinTensorShape)):
+        indexList = tb.index_v2t(joinTensorShape,index)
+        
+    
 
     return FinalOrderList
 
     
 
 if __name__ == "__main__":
-    lenList = [7,5,6,6,8]
-    toList = [0,0,1,1,0]
-    corList = [[],[[1,3],[2,5]],[[0,3],[1,3]],[[3,4],[2,3]],[[2,5],[1,5]]]
-    joinTree = create_tree(toList,lenList,corList)
-    joinTree.show()
-    FinalOrderList = tree_join(joinTree.get_node(joinTree.root),joinTree)
-    print("FinalOrderList:",FinalOrderList)
+    pass

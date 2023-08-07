@@ -1,4 +1,51 @@
 import tensorly.backend as tl
+import sys
+sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
+from utils.forList import factorial_list
+
+def index_t2v(tensorShp,indexList):
+    """Obtain the index of tensor form corresponding to vector form
+
+    Parameters
+    ----------
+    tensorShp : tensor shape
+    indexList : tuple/list, Index in Tensor Form
+
+    Returns
+    -------
+    index : int, Index in vector form
+    """
+    index = 0
+    shp = tensorShp
+    i = 0
+    while i < len(indexList):
+        if i < len(indexList)-1:
+            index += factorial_list(shp[i+1:])*indexList[i]
+        elif i == len(indexList)-1:
+            index += indexList[i]
+        i += 1
+    return index
+
+def index_v2t(tensorShp,index):
+    """Obtain the index of vector form corresponding to tensor form
+
+    Parameters
+    ----------
+    tensorShp : tensor shape
+    index : int, Index in Vector Form
+
+    Returns
+    -------
+    indexList : list, Index in Tensor Form
+    """
+    indexList = []
+    shp = tensorShp
+    for i in range(len(shp)):
+        j = int(index/factorial_list(shp[i+1:]))
+        indexList.append(j)
+        index -= j*factorial_list(shp[i+1:])
+
+    return indexList
 
 
 def tensor_to_vec(tensor):

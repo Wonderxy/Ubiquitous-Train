@@ -41,8 +41,6 @@ def create_tree(toList,lenList,corList):
     return joinTree
 
 
-
-
 def tree_join(node,tree):
     """On the basis of Tree structure, multi tensor join is completed through recursion
 
@@ -75,7 +73,6 @@ def tree_join(node,tree):
     childList = tree.children(node.identifier)
     for child in childList:
         # front part
-        print(child.data[1])
         firstOrderIndex = FinalOrderList.index((int(node.tag),child.data[1][1][0]))
         if firstOrderIndex > child.data[1][0][0]:
             for k in range(child.data[1][0][0]):
@@ -92,7 +89,6 @@ def tree_join(node,tree):
                     node.data[1][0] = [i+1 for i in node.data[1][0]]
         
         #middle part
-        print(child.data[1])
         for j in range(len(child.data[1][1])-1):
             for k in range(child.data[1][0][j]+1,child.data[1][0][j+1]):
                 insertInedx = FinalOrderList.index((int(node.tag),child.data[1][1][j+1]))
@@ -116,7 +112,6 @@ def tree_join(node,tree):
             for k in range(child.data[1][0][-1]+1,child.data[0]):
                 FinalOrderList.append(insertList[child.identifier][k])
                 node.data[0] += 1
-        print("node-",node.tag,":",FinalOrderList)    
     return FinalOrderList
 
 

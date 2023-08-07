@@ -75,30 +75,31 @@ def tree_join(node,tree):
     childList = tree.children(node.identifier)
     for child in childList:
         # front part
+        print(child.data[1])
         firstOrderIndex = FinalOrderList.index((int(node.tag),child.data[1][1][0]))
         if firstOrderIndex > child.data[1][0][0]:
             for k in range(child.data[1][0][0]):
                 insertInedx = FinalOrderList.index((int(node.tag),child.data[1][1][0]))
                 FinalOrderList.insert(insertInedx,insertList[child.identifier][k])
-                print(node.data[1])
                 node.data[0] += 1
                 if node.identifier != tree.root:
                     node.data[1][0] = [i+1 if i>=insertInedx else i for i in node.data[1][0]]
         else:
             for k in range(child.data[1][0][0]):
-                FinalOrderList.insert(int(node.tag)+k,insertList[child.identifier][k])
+                FinalOrderList.insert(k,insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
                     node.data[1][0] = [i+1 for i in node.data[1][0]]
         
         #middle part
+        print(child.data[1])
         for j in range(len(child.data[1][1])-1):
             for k in range(child.data[1][0][j]+1,child.data[1][0][j+1]):
                 insertInedx = FinalOrderList.index((int(node.tag),child.data[1][1][j+1]))
                 FinalOrderList.insert(insertInedx,insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
-                    node.data[1][0] = [i+1 if i>=insertInedx else i for i in node.data[1][0] ]
+                    node.data[1][0] = [i+1 if i>=insertInedx else i for i in node.data[1][0]]
 
         # rear part
         endOrderIndex = FinalOrderList.index((int(node.tag),child.data[1][1][-1]))
@@ -110,12 +111,12 @@ def tree_join(node,tree):
                 FinalOrderList.insert(insertInedx+1+k-(child.data[1][0][-1]+1),insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
-                    node.data[1][0] = [i+1 if i>=insertInedx else i for i in node.data[1][0]]
+                    node.data[1][0] = [i+1 if i>=insertInedx+1+k-(child.data[1][0][-1]+1) else i for i in node.data[1][0]]
         else:
             for k in range(child.data[1][0][-1]+1,child.data[0]):
                 FinalOrderList.append(insertList[child.identifier][k])
                 node.data[0] += 1
-                
+        print("node-",node.tag,":",FinalOrderList)    
     return FinalOrderList
 
 
@@ -144,9 +145,9 @@ def tensor_join(tList,toList,corList):
     
 
 if __name__ == "__main__":
-    lenList = [8,7,5,6]
-    toList = [0,0,1,0]
-    corList = [[],[[3,5],[2,5]],[[1,3],[3,6]],[[1,2],[2,4]]]
+    lenList = [7,5,6,6,8]
+    toList = [0,0,1,1,0]
+    corList = [[],[[1,3],[2,5]],[[0,3],[1,3]],[[3,4],[2,3]],[[2,5],[1,5]]]
     joinTree = create_tree(toList,lenList,corList)
     joinTree.show()
     FinalOrderList = tree_join(joinTree.get_node(joinTree.root),joinTree)

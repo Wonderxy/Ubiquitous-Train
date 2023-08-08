@@ -5,6 +5,7 @@ import sys
 sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 import tensor.base as tb
 from utils.forList import factorial_list
+import copy
 
 def validate_join_tensor(tList,toList,corList):
     """Verify before operation, including the quantity of tensors and
@@ -33,7 +34,7 @@ def validate_join_tensor(tList,toList,corList):
     for i in range(1,tNum):
         toTensor = toList[i]
         for j in range(len(corList[i][0])):
-            if shpList[i][corList[i][0][j]] != shpList[toTensor][corList[toTensor][1][j]]:
+            if shpList[i][corList[i][0][j]] != shpList[toTensor][corList[i][1][j]]:
                 raise ValueError("Mismatch in the number of ordered dimensions between corresponding tensors")
     
     lenList = []
@@ -65,14 +66,13 @@ def create_tree(toList,lenList,corList):
             if toList[j] == i:
                 sons.append(j)
         sonList.append(sons)
-    # print(sonList)
 
     joinTree = Tree()
-    joinTree.create_node(identifier=str(0),data=[lenList[0],corList[0]])
+    joinTree.create_node(identifier=str(0),data=[lenList[0],copy.deepcopy(corList[0])])
     joinTree.root = str(0)
     for i in range(len(sonList)):
         for j in sonList[i]:
-            joinTree.create_node(identifier=str(j),parent=str(i),data=[lenList[j],corList[j]])   
+            joinTree.create_node(identifier=str(j),parent=str(i),data=[lenList[j],copy.deepcopy(corList[j])])   
             
     return joinTree
 
@@ -86,14 +86,14 @@ def tree_join(node,tree):
     tree : Tree,joinTree
     Returns
     -------
-    FinalOrderList : list[(tensor,order),(tensor,order),...]
+    FinalOrderList : list[[tensor,order],[tensor,order],...]
         The final positions of the tensors and their orders
     """
     FinalOrderList = []
     #If a leaf node
     if node.is_leaf(tree_id=tree.identifier):
         for i in range(node.data[0]):
-            FinalOrderList.append((int(node.tag),i))
+            FinalOrderList.append([int(node.tag),i])
         return FinalOrderList
      
     childList = tree.children(node.identifier)
@@ -104,51 +104,64 @@ def tree_join(node,tree):
 
     # initialize FinalOrderList
     for i in range(node.data[0]):
-        FinalOrderList.append((int(node.tag),i))
+        FinalOrderList.append([int(node.tag),i])
     
     childList = tree.children(node.identifier)
     for child in childList:
         # front part
-        firstOrderIndex = FinalOrderList.index((int(node.tag),child.data[1][1][0]))
+        firstOrderIndex = FinalOrderList.index([int(node.tag),child.data[1][1][0]])
         if firstOrderIndex > child.data[1][0][0]:
             for k in range(child.data[1][0][0]):
-                insertInedx = FinalOrderList.index((int(node.tag),child.data[1][1][0]))
-                FinalOrderList.insert(insertInedx,insertList[child.identifier][k])
+                insertIndex = FinalOrderList.index([int(node.tag),child.data[1][1][0]])
+                FinalOrderList.insert(insertIndex,insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
-                    node.data[1][0] = [i+1 if i>=insertInedx else i for i in node.data[1][0]]
+                    node.data[1][0] = [i+1 if i>=insertIndex else i for i in node.data[1][0]]
         else:
             for k in range(child.data[1][0][0]):
                 FinalOrderList.insert(k,insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
                     node.data[1][0] = [i+1 for i in node.data[1][0]]
-        
+
         #middle part
         for j in range(len(child.data[1][1])-1):
             for k in range(child.data[1][0][j]+1,child.data[1][0][j+1]):
-                insertInedx = FinalOrderList.index((int(node.tag),child.data[1][1][j+1]))
-                FinalOrderList.insert(insertInedx,insertList[child.identifier][k])
+                insertIndex = FinalOrderList.index([int(node.tag),child.data[1][1][j+1]])
+                FinalOrderList.insert(insertIndex,insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
-                    node.data[1][0] = [i+1 if i>=insertInedx else i for i in node.data[1][0]]
+                    node.data[1][0] = [i+1 if i>=insertIndex else i for i in node.data[1][0]]
 
         # rear part
-        endOrderIndex = FinalOrderList.index((int(node.tag),child.data[1][1][-1]))
+        endOrderIndex = FinalOrderList.index([int(node.tag),child.data[1][1][-1]])
         rearNumMain = len(FinalOrderList)-endOrderIndex
         rearNum = child.data[0]-child.data[1][0][-1]
         if rearNumMain > rearNum:
             for k in range(child.data[1][0][-1]+1,child.data[0]):
-                insertInedx = FinalOrderList.index((int(node.tag),child.data[1][1][-1]))
-                FinalOrderList.insert(insertInedx+1+k-(child.data[1][0][-1]+1),insertList[child.identifier][k])
+                insertIndex = FinalOrderList.index([int(node.tag),child.data[1][1][-1]])
+                FinalOrderList.insert(insertIndex+1+k-(child.data[1][0][-1]+1),insertList[child.identifier][k])
                 node.data[0] += 1
                 if node.identifier != tree.root:
-                    node.data[1][0] = [i+1 if i>=insertInedx+1+k-(child.data[1][0][-1]+1) else i for i in node.data[1][0]]
+                    node.data[1][0] = [i+1 if i>=insertIndex+1+k-(child.data[1][0][-1]+1) else i for i in node.data[1][0]]
         else:
             for k in range(child.data[1][0][-1]+1,child.data[0]):
                 FinalOrderList.append(insertList[child.identifier][k])
                 node.data[0] += 1
+
     return FinalOrderList
+
+def join_order(tensor,order,toList,corList):#(0,2)
+    OrderList = []#[tensor,order]
+    for i in range(1,len(toList)):
+        if tensor == toList[i]:
+            for j in range(len(corList[i][0])):
+                if corList[i][1][j] == order:
+                    OrderList.append([i,corList[i][0][j]])
+                    break
+    for list in OrderList:
+        OrderList += join_order(list[0],list[1],toList,corList)
+    return OrderList
 
 
 def tensor_join(tList,toList,corList):
@@ -170,21 +183,37 @@ def tensor_join(tList,toList,corList):
     join_tree.show()
     FinalOrderList = tree_join(join_tree.get_node(join_tree.root),join_tree)
 
-    joinTensorLen = len(FinalOrderList)
     joinTensorShape = []
     for site in FinalOrderList:
         joinTensorShape.append(shpList[site[0]][site[1]])
-    joinTensor = tl.tensor(np.zeros(joinTensorShape))
-    joinVector = tb.tensor_to_vec(joinTensor)
-    
+    joinVector = tl.tensor(np.zeros(factorial_list(joinTensorShape)))
     for index in range(factorial_list(joinTensorShape)):
         indexList = tb.index_v2t(joinTensorShape,index)
-        
+        indexLists = [['' for j in range(len(tList[i].shape))] for i in range(len(tList))]
+        for i in range(len(indexList)):
+            indexLists[FinalOrderList[i][0]][FinalOrderList[i][1]] = indexList[i]
+            JoinOrderList = join_order(FinalOrderList[i][0],FinalOrderList[i][1],toList,corList)
+            for list in JoinOrderList:
+                indexLists[list[0]][list[1]] = indexList[i]
+        result = 1
+        for i in range(len(indexLists)):
+            vIndex = tb.index_t2v(shpList[i],indexLists[i])
+            vector = tb.tensor_to_vec(tList[i])
+            result *= vector[vIndex]
+        joinVector[index] = result
     
+    joinTensor = tb.vec_to_tensor(joinVector,joinTensorShape)
 
-    return FinalOrderList
-
-    
+    return joinTensor 
+ 
 
 if __name__ == "__main__":
-    pass
+    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,5,6)))
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
+    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5)))
+    tList = [t1,t2,t3]
+    toList = [0,0,1]
+    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]]]
+    t4 = tensor_join(tList,toList,corList)
+    print(t4.shape)
+    

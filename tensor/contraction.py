@@ -213,12 +213,14 @@ if __name__ == "__main__":
     t2 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
     t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
     t4 = tl.tensor(np.random.randint(0,2,(2,2,5,2)))
-    tList = [t1,t2,t3,t4]
-    toList = [0,0,1,0]
-    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]]]
+    t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
+    tList = [t1,t2,t3,t4,t5]
+    toList = [0,0,1,0,1]
+    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]],[[1,2],[1,3]]]
     time1 = time.time()
-    t5 = tensor_join(tList,toList,corList)
+    t6 = tensor_join(tList,toList,corList)
     time2 = time.time()
-    print("Shape:",t5.shape)
+    print("Shape:",t6.shape)
     print("Time:",time2-time1)
+
     

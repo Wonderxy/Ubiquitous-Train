@@ -7,6 +7,8 @@ import tensor.base as tb
 from utils.forList import factorial_list
 import copy
 import time
+from thread_class.t_multithreading import TJMThread
+from process_class.t_multiprocess import TJMProcess
 
 def validate_join_tensor(tList,toList,corList):
     """Verify before operation, including the quantity of tensors and
@@ -152,8 +154,22 @@ def tree_join(node,tree):
 
     return FinalOrderList
 
-def join_order(tensor,order,toList,corList):#(0,2)
-    OrderList = []#[tensor,order]
+def join_order(tensor,order,toList,corList):
+    """Obtain the [tensor, order] that joins with [tensor, order]
+
+    Parameters
+    ----------
+    tensor : int, tensor_id in tList
+    order : int, order_id in tensor
+    toList : list[list], tensor corresponding to join together
+    corList : list, Tensor corresponding to join
+
+    Returns
+    -------
+    OrderList : list[[tensor,order],[tensor,order],...]
+        The [tensor, order] that joins with [tensor, order]
+    """
+    OrderList = []
     for i in range(1,len(toList)):
         if tensor == toList[i]:
             for j in range(len(corList[i][0])):
@@ -163,7 +179,6 @@ def join_order(tensor,order,toList,corList):#(0,2)
     for list in OrderList:
         OrderList += join_order(list[0],list[1],toList,corList)
     return OrderList
-
 
 def tensor_join(tList,toList,corList):
     """Tensor based multi tensor join operation
@@ -188,6 +203,42 @@ def tensor_join(tList,toList,corList):
     for site in FinalOrderList:
         joinTensorShape.append(shpList[site[0]][site[1]])
     joinVector = tl.tensor(np.zeros(factorial_list(joinTensorShape)))
+
+    # num = int(factorial_list(joinTensorShape)/5)
+
+    # t1 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
+    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
+    #         range_=[0,num])
+    
+    # t2 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
+    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
+    #         range_=[num,2*num]) 
+    
+    # t3 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
+    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
+    #         range_=[2*num,3*num]) 
+    
+    # t4 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
+    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
+    #         range_=[3*num,4*num]) 
+    
+    # t5 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
+    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
+    #         range_=[4*num,factorial_list(joinTensorShape)]) 
+    
+    # t1.run()
+    # t2.run()
+    # t3.run()
+    # t4.run()
+    # t5.run()
+    # result1 = t1.result
+    # result2 = t2.result
+    # result3 = t3.result
+    # result4 = t4.result
+    # result5 = t5.result
+
+    # joinVector = result1+result2+result3+result4+result5
+
     for index in range(factorial_list(joinTensorShape)):
         indexList = tb.index_v2t(joinTensorShape,index)
         indexLists = [['' for j in range(len(tList[i].shape))] for i in range(len(tList))]
@@ -213,10 +264,13 @@ if __name__ == "__main__":
     t2 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
     t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
     t4 = tl.tensor(np.random.randint(0,2,(2,2,5,2)))
-    t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
-    tList = [t1,t2,t3,t4,t5]
-    toList = [0,0,1,0,1]
-    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]],[[1,2],[1,3]]]
+    # t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
+    # tList = [t1,t2,t3,t4,t5]
+    # toList = [0,0,1,0,1]
+    # corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]],[[1,2],[1,3]]]
+    tList = [t1,t2,t3,t4]
+    toList = [0,0,1,0]
+    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]]]
     time1 = time.time()
     t6 = tensor_join(tList,toList,corList)
     time2 = time.time()

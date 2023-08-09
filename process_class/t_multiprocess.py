@@ -2,10 +2,11 @@ import sys
 sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 import time
 from threading import Thread
-from multiprocessing import Process
+from multiprocessing import Process,Pool
 from utils.forList import factorial_list
 import tensor.base as tb
 import copy
+import os
 
 
 def join_order(tensor,order,toList,corList):
@@ -68,7 +69,7 @@ class TJMProcess(Process):
         self.joinVector = copy.deepcopy(joinVector)
         self.range_ = range_
 
-    def run(self):
+    def start(self):
         self.result = Cor_multiply(self.tList,self.toList,self.corList,self.shpList,\
                                    self.FinalOrderList,self.joinVector,self.range_)
 

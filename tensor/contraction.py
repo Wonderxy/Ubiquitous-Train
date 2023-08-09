@@ -9,6 +9,7 @@ import copy
 import time
 from thread_class.t_multithreading import TJMThread
 from process_class.t_multiprocess import TJMProcess
+from multiprocessing import Pool
 
 def validate_join_tensor(tList,toList,corList):
     """Verify before operation, including the quantity of tensors and
@@ -180,6 +181,30 @@ def join_order(tensor,order,toList,corList):
         OrderList += join_order(list[0],list[1],toList,corList)
     return OrderList
 
+def Cor_multiply(tList,toList,corList,shpList,FinalOrderList,joinVector,range_):
+    """
+    for Parallel computing
+    """
+    joinTensorShape = []
+    for site in FinalOrderList:
+        joinTensorShape.append(shpList[site[0]][site[1]])
+    
+    for index in range(range_[0],range_[1]):
+        indexList = tb.index_v2t(joinTensorShape,index)
+        indexLists = [['' for j in range(len(tList[i].shape))] for i in range(len(tList))]
+        for i in range(len(indexList)):
+            indexLists[FinalOrderList[i][0]][FinalOrderList[i][1]] = indexList[i]
+            JoinOrderList = join_order(FinalOrderList[i][0],FinalOrderList[i][1],toList,corList)
+            for list in JoinOrderList:
+                indexLists[list[0]][list[1]] = indexList[i]
+        result = 1
+        for i in range(len(indexLists)):
+            vIndex = tb.index_t2v(shpList[i],indexLists[i])
+            vector = tb.tensor_to_vec(tList[i])
+            result *= vector[vIndex]
+        joinVector[index] = result
+    return joinVector
+
 def tensor_join(tList,toList,corList):
     """Tensor based multi tensor join operation
 
@@ -198,47 +223,31 @@ def tensor_join(tList,toList,corList):
     join_tree = create_tree(toList,lenList,corList)
     join_tree.show()
     FinalOrderList = tree_join(join_tree.get_node(join_tree.root),join_tree)
+    print("FinalOrderList",FinalOrderList)
 
     joinTensorShape = []
     for site in FinalOrderList:
         joinTensorShape.append(shpList[site[0]][site[1]])
     joinVector = tl.tensor(np.zeros(factorial_list(joinTensorShape)))
+    
+    num = int(factorial_list(joinTensorShape)/10)
+    p=Pool(10)
+    r1 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[0,num]))
+    r2 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[num,2*num]))
+    r3 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[2*num,3*num]))
+    r4 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[3*num,4*num]))
+    r5 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[4*num,5*num]))
+    r6 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[5*num,6*num]))
+    r7 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[6*num,7*num]))
+    r8 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[7*num,8*num]))
+    r9 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[8*num,9*num]))
+    r10 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[9*num,factorial_list(joinTensorShape)]))
+    p.close()
+    p.join() 
+    joinVector = r1.get()+r2.get()+r3.get()+r4.get()+r5.get()+r6.get()+r7.get()+r8.get()+r9.get()+r10.get()
 
-    # num = int(factorial_list(joinTensorShape)/5)
-
-    # t1 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
-    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
-    #         range_=[0,num])
-    
-    # t2 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
-    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
-    #         range_=[num,2*num]) 
-    
-    # t3 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
-    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
-    #         range_=[2*num,3*num]) 
-    
-    # t4 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
-    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
-    #         range_=[3*num,4*num]) 
-    
-    # t5 = TJMProcess(tList=tList,toList=toList,corList=corList,shpList=shpList,\
-    #         FinalOrderList=FinalOrderList,joinVector=joinVector,\
-    #         range_=[4*num,factorial_list(joinTensorShape)]) 
-    
-    # t1.run()
-    # t2.run()
-    # t3.run()
-    # t4.run()
-    # t5.run()
-    # result1 = t1.result
-    # result2 = t2.result
-    # result3 = t3.result
-    # result4 = t4.result
-    # result5 = t5.result
-
-    # joinVector = result1+result2+result3+result4+result5
-
+    '''
+    #Serial coding
     for index in range(factorial_list(joinTensorShape)):
         indexList = tb.index_v2t(joinTensorShape,index)
         indexLists = [['' for j in range(len(tList[i].shape))] for i in range(len(tList))]
@@ -253,7 +262,7 @@ def tensor_join(tList,toList,corList):
             vector = tb.tensor_to_vec(tList[i])
             result *= vector[vIndex]
         joinVector[index] = result
-    
+        '''
     joinTensor = tb.vec_to_tensor(joinVector,joinTensorShape)
 
     return joinTensor 
@@ -276,5 +285,9 @@ if __name__ == "__main__":
     time2 = time.time()
     print("Shape:",t6.shape)
     print("Time:",time2-time1)
-
+    axis = tuple(i for i in range(len(t6.shape)))
+    print("countNum:",np.count_nonzero(t6,axis=axis))
     
+
+
+

@@ -6,6 +6,7 @@ sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 import tensor.base as tb
 from utils.forList import factorial_list
 import copy
+import time
 
 def validate_join_tensor(tList,toList,corList):
     """Verify before operation, including the quantity of tensors and
@@ -210,10 +211,14 @@ def tensor_join(tList,toList,corList):
 if __name__ == "__main__":
     t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,5,6)))
     t2 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
-    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5)))
-    tList = [t1,t2,t3]
-    toList = [0,0,1]
-    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]]]
-    t4 = tensor_join(tList,toList,corList)
-    print(t4.shape)
+    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
+    t4 = tl.tensor(np.random.randint(0,2,(2,2,5,2)))
+    tList = [t1,t2,t3,t4]
+    toList = [0,0,1,0]
+    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]]]
+    time1 = time.time()
+    t5 = tensor_join(tList,toList,corList)
+    time2 = time.time()
+    print("Shape:",t5.shape)
+    print("Time:",time2-time1)
     

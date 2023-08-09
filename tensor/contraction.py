@@ -7,7 +7,6 @@ import tensor.base as tb
 from utils.forList import factorial_list
 import copy
 import time
-from thread_class.t_multithreading import TJMThread
 from process_class.t_multiprocess import TJMProcess
 from multiprocessing import Pool
 

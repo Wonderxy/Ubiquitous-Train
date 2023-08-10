@@ -227,6 +227,7 @@ def tensor_join(tList,toList,corList):
     joinTensorShape = []
     for site in FinalOrderList:
         joinTensorShape.append(shpList[site[0]][site[1]])
+    print("joinTensorShape:",joinTensorShape)
     joinVector = tl.tensor(np.zeros(factorial_list(joinTensorShape)))
     
     num = int(factorial_list(joinTensorShape)/10)

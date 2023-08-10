@@ -204,3 +204,6 @@ if __name__ == "__main__":
     A = load_tensor(["ratingTensor"])[0]
     tt = TensorTrain(rank=0,method="tt_svd").fit_transform(A) 
     print(type(tt))
+    print(tt.rank)
+    print(tt.shape)
+    print(tt[0].shape)

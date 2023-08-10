@@ -30,8 +30,10 @@ def validate_join_tt(ttList,toList,corList):
         raise ValueError("The number of parameters for tList,toList,corList needs to be equal")
     #validate_join_order
     shpList = []
+    rankList = []
     for t in ttList:
         shpList.append(t.shape)
+        rankList.append(t.rank)
     
     for i in range(1,tNum):
         toTensor = toList[i]
@@ -43,7 +45,49 @@ def validate_join_tt(ttList,toList,corList):
     for shp in shpList:
         lenList.append(len(shp))
     
-    return shpList,lenList
+    return shpList,rankList,lenList
+
+def padding_tensor(order,ttr):
+    """Generate filled matrices corresponding to different ttranks
+
+    Parameters
+    ----------
+    order : int, Corresponding to the order in the original tensor
+    ttr : int, The rank of core tensors tt with adjacency
+
+    Returns
+    -------
+    eT : ndarray/tl.tensor
+        Padding tensor composed of identity matrix
+    """
+    eM = np.eye(ttr)
+    eT = tl.tensor(np.zeros((ttr,order,ttr)))
+    for i in range(order):
+        eT[:,i,:] = eM 
+    return eT
+
+def padding(ttList,FinalOrderList,toList,corList,shpList):
+    FinalPaddingList = []
+    for i in range(len(ttList)):
+        paddingList = []
+        start = 0
+        for j in range(len(FinalOrderList)):
+            flag = True
+            joinOrderList = tc.join_order(FinalOrderList[j][0],FinalOrderList[j][1],toList,corList)
+            for k in range(start,len(ttList[i].factors)):
+                if ([i,k] in joinOrderList) or ([i,k] == FinalOrderList[j]):
+                    paddingList.append(ttList[i][k])
+                    start += 1
+                    flag = False
+                    break
+            if flag:
+                order = shpList[FinalOrderList[j][0]][FinalOrderList[j][1]]
+                ttr = (ttList[i].rank)[start]
+                paddingList.append(padding_tensor(order,ttr))
+            
+        FinalPaddingList.append(paddingList)
+    return FinalPaddingList
+
 
 def tt_join(ttList,toList,corList):
     """Tensor based multi tensor join operation
@@ -59,16 +103,25 @@ def tt_join(ttList,toList,corList):
     joinTensor : ndarray/tl.tensor
         The Result of Joining Multiple Tensors
     """
-    shpList,lenList = validate_join_tt(ttList,toList,corList)
+    shpList,rankList,lenList = validate_join_tt(ttList,toList,corList)
     join_tree = tc.create_tree(toList,lenList,corList)
     join_tree.show()
     FinalOrderList = tc.tree_join(join_tree.get_node(join_tree.root),join_tree)
-    print("FinalOrderList",FinalOrderList)
+    print("FinalOrderList:",FinalOrderList)
 
     joinTensorShape = []
     for site in FinalOrderList:
         joinTensorShape.append(shpList[site[0]][site[1]])
-    #continue code
+    print("joinTensorShape:",joinTensorShape)
+
+    FinalPaddingList = padding(ttList,FinalOrderList,toList,corList,shpList)
+
+    return FinalPaddingList
+
+
+
+
+    
 
 if __name__ == "__main__":
     t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,5,6)))
@@ -87,9 +140,11 @@ if __name__ == "__main__":
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
         ttList.append(tt)
     time1 = time.time()
-    tt_join(ttList,toList,corList)
+    t6 = tt_join(ttList,toList,corList)
     time2 = time.time()
-    # print("Shape:",t6.shape)
-    # print("Time:",time2-time1)
+    for i in range(len(t6)):
+        print("Shape:",len(t6[i]))
+    print("Time:",time2-time1)
+    # print(t6[0])
     # axis = tuple(i for i in range(len(t6.shape)))
     # print("countNum:",np.count_nonzero(t6,axis=axis))

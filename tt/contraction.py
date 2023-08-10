@@ -69,6 +69,22 @@ def padding_tensor(order,ttr):
     return eT
 
 def padding(ttList,FinalOrderList,toList,corList,shpList):
+    """Fill the original tensor train with padding tensors to ensure that 
+        it can perform Kron multiplication of the corresponding order
+
+    Parameters
+    ----------
+    ttList : list[TTTensor], ttlist
+    FinalOrderList : list[[tensor,order]]
+    toList : list[], tensor corresponding to join together
+    corList : list[[order,order],[order,order]],...], Tensor corresponding to join
+    shpList : list, shape list
+    
+    Returns
+    -------
+    FinalPaddingList : list[tl.tensor,tl.tensor,...]
+        The tensor train of each new tensor after filling in the unit padding tensor
+    """
     FinalPaddingList = []
     for i in range(len(ttList)):
         paddingList = []
@@ -92,18 +108,18 @@ def padding(ttList,FinalOrderList,toList,corList,shpList):
 
 
 def tt_join(ttList,toList,corList):
-    """Tensor based multi tensor join operation
+    """TT based multi tensor join operation
 
     Parameters
     ----------
-    tList : ndarray/tl.tensor[ndarray/tl.tensor], tensorList
+    ttList : list[TTTensor], ttlist
     toList : list[list], tensor corresponding to join together
     corList : list, Tensor corresponding to join
 
     Returns
     -------
-    joinTensor : ndarray/tl.tensor
-        The Result of Joining Multiple Tensors
+    factorList : list[TTTensor]
+        The Result of Joining Multiple Tensors baseed on TT
     """
     shpList,rankList,lenList = validate_join_tt(ttList,toList,corList)
     join_tree = tc.create_tree(toList,lenList,corList)

@@ -8,6 +8,8 @@ import copy
 import time
 from multiprocessing import Pool
 import decomposition.ttd as ttd 
+import tensor.mathematical as tm
+from tt.tt_tensor import TTTensor
 
 def validate_join_tt(ttList,toList,corList):
     """Verify before operation, including the quantity of tts and
@@ -115,10 +117,14 @@ def tt_join(ttList,toList,corList):
     print("joinTensorShape:",joinTensorShape)
 
     FinalPaddingList = padding(ttList,FinalOrderList,toList,corList,shpList)
+    factorList = []
+    for i in range(len(FinalPaddingList[0])):
+        factor = FinalPaddingList[0][i]
+        for j in range(1,len(FinalPaddingList)):
+            factor = tm.factors_kron(FinalPaddingList[j][i],factor)
+        factorList.append(factor)
 
-    return FinalPaddingList
-
-
+    return TTTensor(factorList)
 
 
     
@@ -142,9 +148,5 @@ if __name__ == "__main__":
     time1 = time.time()
     t6 = tt_join(ttList,toList,corList)
     time2 = time.time()
-    for i in range(len(t6)):
-        print("Shape:",len(t6[i]))
     print("Time:",time2-time1)
-    # print(t6[0])
-    # axis = tuple(i for i in range(len(t6.shape)))
-    # print("countNum:",np.count_nonzero(t6,axis=axis))
+    print(t6.to_tensor().shape)

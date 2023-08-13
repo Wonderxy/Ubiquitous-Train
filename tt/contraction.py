@@ -4,7 +4,6 @@ import sys
 sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 from utils.forList import factorial_list
 import tensor.contraction as tc
-import copy
 import time
 from multiprocessing import Pool
 import decomposition.ttd as ttd 
@@ -137,13 +136,146 @@ def tt_join(ttList,toList,corList):
     for i in range(len(FinalPaddingList[0])):
         factor = FinalPaddingList[0][i]
         for j in range(1,len(FinalPaddingList)):
-            factor = tm.factors_kron(FinalPaddingList[j][i],factor)
+            factor = tm.factors_kron(factor,FinalPaddingList[j][i])#
         factorList.append(factor)
 
     return TTTensor(factorList)
 
+"""
+    Optimize for excessive dimensionality caused by excessive padding tensors in tt-join,
+    otherwise it will lead to an increase in spatial/temporal complexity
+"""
 
+def padding_opt(ttList,FinalOrderList,toList,corList,shpList):
+    FinalPaddingList = []
+    for i in range(len(ttList)):
+        paddingList = []
+        start = 0
+        for j in range(len(FinalOrderList)):
+            flag = True
+            joinOrderList = tc.join_order(FinalOrderList[j][0],FinalOrderList[j][1],toList,corList)
+            for k in range(start,len(ttList[i].factors)):
+                if ([i,k] in joinOrderList) or ([i,k] == FinalOrderList[j]):
+                    paddingList.append(ttList[i][k])
+                    start += 1
+                    flag = False
+                    break
+            if flag:
+                order = shpList[FinalOrderList[j][0]][FinalOrderList[j][1]]
+                ttr = (ttList[i].rank)[start]
+                paddingList.append(ttr)#padding_tensor(order,ttr)-->ttr
+        FinalPaddingList.append(paddingList)
+    return FinalPaddingList
+
+
+def kron_block(matrix,blocknum,ttr):
+    row_b = blocknum[0]
+    col_b = blocknum[1]
+    col_M = np.split(matrix,col_b,axis=1)
+    splited_list = []
+    for m in col_M:
+        row_M = np.split(m,row_b,axis=0)
+        splited_list.append(row_M)
+    for i in range(col_b):
+        for j in range(row_b):
+            splited_list[i][j] = np.kron(np.eye(ttr),splited_list[i][j])
+    colList = []
+    for i in range(col_b):
+        rowList = []
+        for j in range(row_b):
+            rowList.append([splited_list[i][j]])
+        colList.append(np.block(rowList))
+    finalM = np.block(colList)
+    print("finalM:",finalM.shape)
+    return finalM
+
+def tt_join_opt(ttList,toList,corList):
+    shpList,rankList,lenList = validate_join_tt(ttList,toList,corList)
+    join_tree = tc.create_tree(toList,lenList,corList)
+    join_tree.show()
+    FinalOrderList = tc.tree_join(join_tree.get_node(join_tree.root),join_tree)
+    print("FinalOrderList:",FinalOrderList)
+
+    joinTensorShape = []
+    for site in FinalOrderList:
+        joinTensorShape.append(shpList[site[0]][site[1]])
+    print("joinTensorShape:",joinTensorShape)
+
+    FinalPaddingList = padding_opt(ttList,FinalOrderList,toList,corList,shpList)#padding-->padding_opt
     
+        
+    factorList = []
+    for i in range(len(FinalPaddingList[0])):
+        tNum = 0;ttr = 1
+        rowNum = 1; colNum = 1
+        factor1List = []
+        for j in range(0,len(FinalPaddingList)):
+            if isinstance(FinalPaddingList[j][i],int):
+                ttr *= FinalPaddingList[j][i]
+            elif tNum == 0:
+                factor = FinalPaddingList[j][i]
+                factor1List.append([ttr,rowNum,colNum])
+                tNum += 1; ttr = 1
+                rowNum = factor.shape[0];colNum = factor.shape[2]
+            else:
+                factor = tm.factors_kron(factor,FinalPaddingList[j][i])
+                factor1List.append([ttr,rowNum,colNum])
+                ttr = 1
+                rowNum = factor.shape[0];colNum = factor.shape[2]#ERROR
+        factor1List.append([ttr])
+        factor1List.insert(0,factor)    
+        factorList.append(factor1List)
+        print("[factor,ttr,blockNum]",factor1List[0].shape,factor1List[1:])
+    
+    FinanFactorList = []
+    for factorttr in factorList:
+        factor = factorttr[0]
+        for i in range(1,len(factorttr)-1):
+            print("i",i)
+            newfactor = np.zeros((factor.shape[0]*factorttr[i][0],factor.shape[1],factor.shape[2]*factorttr[i][0]))
+            print("newfactor:",newfactor.shape)
+            for j in range(factor.shape[1]):
+                #Block the matrix
+                print("row col",(factorttr[i][1],factorttr[i][2]))
+                newfactor[:,j,:] = kron_block(factor[:,j,:],(factorttr[i][1],factorttr[i][2]),factorttr[i][0])
+            factor = newfactor
+            print("factor:",factor.shape)
+
+        newfactor = np.zeros((factor.shape[0]*factorttr[-1][0],factor.shape[1],factor.shape[2]*factorttr[-1][0]))
+        
+        for j in range(factor.shape[1]):
+            #Block the matrix
+            newfactor[:,j,:] = np.kron(factor[:,j,:],np.eye(factorttr[-1][0]))
+        FinanFactorList.append(newfactor)
+
+    return TTTensor(FinanFactorList)
+
+"""def tt_contract(factorttrA,factorttrB):
+    factorA = factorttrA[0]
+    ttrA = factorttrA[1]
+    factorB = factorttrB[0]
+    ttrB = factorttrB[1]
+    #shapeA = (factorA.shape[0]*ttrA,factorA.shape[1],factorA.shape[2]*ttrA)
+    #shapeB = (factorB.shape[0]*ttrB,factorB.shape[1],factorB.shape[2]*ttrB)
+    ret = tl.tensor(np.zeros((factorA.shape[0]*ttrA,factorA.shape[1],factorB.shape[1],factorB.shape[2]*ttrB)))
+    for i1 in range(ret.shape[0]):
+        for i2 in range(ret.shape[1]):
+            for i3 in range(ret.shape[2]):
+                for i4 in range(ret.shape[3]):
+                    ea = np.array([1 for i in range(ttrA)])
+                    eb = np.array([1 for i in range(ttrB)])
+                    ret[i1,i2,i3,i4] = np.dot(np.kron(factorA[int(i1/ttrA),i2,:],ea),np.kron(factorB[:,i3,int(i4/ttrB)],eb))
+    return ret
+
+def ret_tensor_TTD(factorList):
+    ret = factorList[0]
+    for i in range(1,len(factorList)):
+        print(len(factorList[i]))
+        ret = tt_contract(ret, factorList[i])
+        print("ret:",ret.shape)
+    shp = np.array(ret.shape)
+    return ret.reshape(tuple(shp[1:-1]))"""
+
 
 if __name__ == "__main__":
     t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,5,6)))
@@ -161,8 +293,9 @@ if __name__ == "__main__":
     for t in tList:
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
         ttList.append(tt)
-    time1 = time.time()
+        print("ttr:",tt.rank)
     t6 = tt_join(ttList,toList,corList)
-    time2 = time.time()
-    print("Time:",time2-time1)
-    print(t6.to_tensor().shape)
+    t7 = tt_join_opt(ttList,toList,corList)
+    fit = tm.fit(t6.to_tensor(),t7.to_tensor())
+    print(fit)
+    

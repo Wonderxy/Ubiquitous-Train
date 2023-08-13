@@ -11,16 +11,16 @@ import tensor.mathematical as tm
 
 if __name__ == "__main__":
     t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,5,6)))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
-    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
+    t3 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
     t4 = tl.tensor(np.random.randint(0,2,(2,2,5,2)))
-    t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
-    tList = [t1,t2,t3,t4,t5]
-    toList = [0,0,1,0,1]
-    corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]],[[1,2],[1,3]]]
-    # tList = [t1,t2,t3,t4]
-    # toList = [0,0,1,0]
-    # corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]]]
+    # t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
+    # tList = [t1,t2,t3,t4,t5]
+    # toList = [0,0,1,0,1]
+    # corList = [[],[[1,2],[2,4]],[[1,2],[1,3]],[[1,2],[1,4]],[[1,2],[1,3]]]
+    tList = [t1,t2,t3,t4]
+    toList = [0,2,0,0]
+    corList = [[],[[1,2],[1,3]],[[1,2],[2,4]],[[1,2],[1,4]]]
     ttList = []
     for t in tList:
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     t7 = tc.tensor_join(tList,toList,corList)
     time4 = time.time()
     print("t-Time:",time4-time3)
-    print("t-shapr:",t7.shape)
+    print("t-shape:",t7.shape)
     
     fit = tm.fit(t6.to_tensor(),t7)
     print("fit=",fit)

@@ -262,10 +262,10 @@ def tt_join_opt(ttList,toList,corList):
 
 
 if __name__ == "__main__":
-    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6)))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6,7)))
-    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
-    t4 = tl.tensor(np.random.randint(0,2,(2,2,1000,2)))
+    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="int"))
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6,7),dtype="int"))
+    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="int")) 
+    t4 = tl.tensor(np.random.randint(0,2,(2,2,1000,2),dtype="int"))
     # t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
     # tList = [t1,t2,t3,t4,t5]
     # toList = [0,0,1,0,1]

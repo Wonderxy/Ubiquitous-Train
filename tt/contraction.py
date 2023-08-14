@@ -167,7 +167,6 @@ def padding_opt(ttList,FinalOrderList,toList,corList,shpList):
         FinalPaddingList.append(paddingList)
     return FinalPaddingList
 
-
 def kron_block(matrix,blocknum,ttr):
     row_b = blocknum[0]
     col_b = blocknum[1]
@@ -186,7 +185,7 @@ def kron_block(matrix,blocknum,ttr):
             rowList.append([splited_list[i][j]])
         colList.append(np.block(rowList))
     finalM = np.block(colList)
-    print("finalM:",finalM.shape)
+    # print("finalM:",finalM.shape)
     return finalM
 
 def tt_join_opt(ttList,toList,corList):
@@ -203,43 +202,50 @@ def tt_join_opt(ttList,toList,corList):
 
     FinalPaddingList = padding_opt(ttList,FinalOrderList,toList,corList,shpList)#padding-->padding_opt
     
-        
     factorList = []
     for i in range(len(FinalPaddingList[0])):
-        tNum = 0;ttr = 1
+        tNum = 0;ttr = 1;nNum = 0;isNum = 0
         rowNum = 1; colNum = 1
         factor1List = []
         for j in range(0,len(FinalPaddingList)):
             if isinstance(FinalPaddingList[j][i],int):
                 ttr *= FinalPaddingList[j][i]
+                isNum = 1
+                nNum += 1
             elif tNum == 0:
+                tNum += 1
                 factor = FinalPaddingList[j][i]
-                factor1List.append([ttr,rowNum,colNum])
-                tNum += 1; ttr = 1
-                rowNum = factor.shape[0];colNum = factor.shape[2]
+                if nNum >0:
+                    factor1List.append([ttr,rowNum,colNum])
+                    ttr = 1
+                    rowNum = factor.shape[0];colNum = factor.shape[2]
+                    isNum = 0
             else:
+                if isNum == 1:
+                    rowNum = factor.shape[0];colNum = factor.shape[2]
+                    factor1List.append([ttr,rowNum,colNum])
+                    ttr = 1
+                    isNum = 0
                 factor = tm.factors_kron(factor,FinalPaddingList[j][i])
-                factor1List.append([ttr,rowNum,colNum])
-                ttr = 1
-                rowNum = factor.shape[0];colNum = factor.shape[2]#ERROR
         factor1List.append([ttr])
         factor1List.insert(0,factor)    
         factorList.append(factor1List)
         print("[factor,ttr,blockNum]",factor1List[0].shape,factor1List[1:])
     
+    '''
+    #Convert to TT format
     FinanFactorList = []
     for factorttr in factorList:
         factor = factorttr[0]
         for i in range(1,len(factorttr)-1):
-            print("i",i)
             newfactor = np.zeros((factor.shape[0]*factorttr[i][0],factor.shape[1],factor.shape[2]*factorttr[i][0]))
-            print("newfactor:",newfactor.shape)
+            # print("newfactor:",newfactor.shape)
             for j in range(factor.shape[1]):
                 #Block the matrix
-                print("row col",(factorttr[i][1],factorttr[i][2]))
+                # print("row col",(factorttr[i][1],factorttr[i][2]))
                 newfactor[:,j,:] = kron_block(factor[:,j,:],(factorttr[i][1],factorttr[i][2]),factorttr[i][0])
             factor = newfactor
-            print("factor:",factor.shape)
+            # print("factor:",factor.shape)
 
         newfactor = np.zeros((factor.shape[0]*factorttr[-1][0],factor.shape[1],factor.shape[2]*factorttr[-1][0]))
         
@@ -249,6 +255,8 @@ def tt_join_opt(ttList,toList,corList):
         FinanFactorList.append(newfactor)
 
     return TTTensor(FinanFactorList)
+    '''
+    return factorList
 
 """def tt_contract(factorttrA,factorttrB):
     factorA = factorttrA[0]
@@ -294,8 +302,17 @@ if __name__ == "__main__":
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
         ttList.append(tt)
         print("ttr:",tt.rank)
+    time1 = time.time()
     t6 = tt_join(ttList,toList,corList)
+    time2 = time.time()
+    print("time:",time2-time1)
     t7 = tt_join_opt(ttList,toList,corList)
-    fit = tm.fit(t6.to_tensor(),t7.to_tensor())
-    print(fit)
+    time3  = time.time()
+    print("time-opt:",time3-time2)
     
+    
+    # fit = tm.fit(t6.to_tensor(),t7.to_tensor())
+    # print(fit)
+    # for i in range(len(t6)):
+    #     fit = tm.fit(t6[i],t7[i])
+    #     print("fit=",fit)

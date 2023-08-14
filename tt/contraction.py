@@ -232,6 +232,7 @@ def tt_join_opt(ttList,toList,corList):
         factorList.append(factor1List)
         print("[factor,ttr,blockNum]",factor1List[0].shape,factor1List[1:])
     
+    
     '''
     #Convert to TT format
     FinanFactorList = []
@@ -256,40 +257,15 @@ def tt_join_opt(ttList,toList,corList):
 
     return TTTensor(FinanFactorList)
     '''
+    
     return factorList
-
-"""def tt_contract(factorttrA,factorttrB):
-    factorA = factorttrA[0]
-    ttrA = factorttrA[1]
-    factorB = factorttrB[0]
-    ttrB = factorttrB[1]
-    #shapeA = (factorA.shape[0]*ttrA,factorA.shape[1],factorA.shape[2]*ttrA)
-    #shapeB = (factorB.shape[0]*ttrB,factorB.shape[1],factorB.shape[2]*ttrB)
-    ret = tl.tensor(np.zeros((factorA.shape[0]*ttrA,factorA.shape[1],factorB.shape[1],factorB.shape[2]*ttrB)))
-    for i1 in range(ret.shape[0]):
-        for i2 in range(ret.shape[1]):
-            for i3 in range(ret.shape[2]):
-                for i4 in range(ret.shape[3]):
-                    ea = np.array([1 for i in range(ttrA)])
-                    eb = np.array([1 for i in range(ttrB)])
-                    ret[i1,i2,i3,i4] = np.dot(np.kron(factorA[int(i1/ttrA),i2,:],ea),np.kron(factorB[:,i3,int(i4/ttrB)],eb))
-    return ret
-
-def ret_tensor_TTD(factorList):
-    ret = factorList[0]
-    for i in range(1,len(factorList)):
-        print(len(factorList[i]))
-        ret = tt_contract(ret, factorList[i])
-        print("ret:",ret.shape)
-    shp = np.array(ret.shape)
-    return ret.reshape(tuple(shp[1:-1]))"""
 
 
 if __name__ == "__main__":
-    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,5,6)))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,5,6,7)))
+    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6)))
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6,7)))
     t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5))) 
-    t4 = tl.tensor(np.random.randint(0,2,(2,2,5,2)))
+    t4 = tl.tensor(np.random.randint(0,2,(2,2,1000,2)))
     # t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
     # tList = [t1,t2,t3,t4,t5]
     # toList = [0,0,1,0,1]
@@ -302,10 +278,10 @@ if __name__ == "__main__":
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
         ttList.append(tt)
         print("ttr:",tt.rank)
-    time1 = time.time()
-    t6 = tt_join(ttList,toList,corList)
+    # time1 = time.time()
+    # t6 = tt_join(ttList,toList,corList)
     time2 = time.time()
-    print("time:",time2-time1)
+    # print("time:",time2-time1)
     t7 = tt_join_opt(ttList,toList,corList)
     time3  = time.time()
     print("time-opt:",time3-time2)

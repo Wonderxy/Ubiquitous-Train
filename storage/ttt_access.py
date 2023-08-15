@@ -93,16 +93,17 @@ def load_tt(ttNameList,path):
 
 if __name__ == "__main__":
     t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="int"))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6,7),dtype="int"))
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6),dtype="int"))
     t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="int")) 
     t4 = tl.tensor(np.random.randint(0,2,(2,2,1000,2),dtype="int"))
-    tList = [t1,t2,t3,t4]
+    t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
+    tList = [t1,t2,t3,t4,t5]
     ttList = []
     for t in tList:
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
         ttList.append(tt)
-    store_tt(ttList,["t1","t2","t3","t4"],path+"/tt_storage/")
+    store_tt(ttList,["t1","t2","t3","t4","t5"],path+"/tt_storage/")
     
-    newttList = load_tt(["t1","t2","t3","t4"],path+"/tt_storage/")
+    newttList = load_tt(["t1","t2","t3","t4","t5"],path+"/tt_storage/")
     for i in range(len(newttList)):
         print(newttList[i].shape)

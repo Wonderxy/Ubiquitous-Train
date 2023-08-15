@@ -2,10 +2,8 @@ import tensorly as  tl
 import numpy as np
 import sys
 sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
-from utils.forList import factorial_list
 import tensor.contraction as tc
 import time
-from multiprocessing import Pool
 import decomposition.ttd as ttd 
 import tensor.mathematical as tm
 from tt.tt_tensor import TTTensor

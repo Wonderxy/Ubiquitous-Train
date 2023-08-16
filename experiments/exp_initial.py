@@ -7,12 +7,16 @@ import decomposition.ttd as ttd
 import copy
 import time
 import tt.contraction as ttc
+import tensor.contraction as tc
+from utils.print2txt import PrintToTxt,mkdir
+import storage.ttt_access as st
 
 
-path = 'D:/Files/VisualStudioCode/TT2.0/Ubiquitous-Train/dataset'
+path = 'D:/Files/VisualStudioCode/TT2.0/Ubiquitous-Train/experiments/'
 
-def exp_runningtime(tList,toList,corList,tNumList,orderNumList,dimNumList):
+def exp_runningtime(tList,epsList,toList,corList,tNumList,orderNumList,dimNumList):
     resultList = {}
+    filePath = mkdir("C:/Users/14619/Desktop/print/8.16/",mode="now")
     for tNum in tNumList:
         for orderNum in orderNumList:
             corL = copy.deepcopy(corList[:tNum])
@@ -21,25 +25,35 @@ def exp_runningtime(tList,toList,corList,tNumList,orderNumList,dimNumList):
                 corL[i][1] = corL[i][1][:orderNum]
             print(corL)
             toL = copy.deepcopy(toList[:tNum])
+            
             for dimNum in dimNumList:
                 tL = copy.deepcopy(tList[:tNum])
-                tL[0] = tL[0][:,:,:,:,:dimNum,:]#need improvement
-                tL[1] = tL[1][:,:,:dimNum,:]
-                time1 = time.time()
-                ttL = []
-                for t in tL:
-                    tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 
-                    ttL.append(tt)
-                ttResult = ttc.tt_join(ttL,toL,corL)
-                time2 = time.time()
-                tt_time = time2 - time1
-                resultList[f"{tNum}-{orderNum}-{dimNum}"] = tt_time
+                tL[0] = tL[0][:,:dimNum,:,:,:,:]#Need improvement
+                tL[1] = tL[1][:,:dimNum,:,:]
+
+                time3 = time.time()
+                tResult = tc.tensor_join(tL,toL,corL)
+                time4 = time.time()
+                t_time = time4 - time3
+                if dimNum == 1000:#Need improvement
+                    st.store_tensor([tResult],[f"tResult-{tNum}-{orderNum}-{dimNum}"],path+"t_storage/")
+
+                for eps in epsList:
+                    time1 = time.time()
+                    ttL = []
+                    for t in tL:
+                        tt = ttd.TensorTrain(rank=eps,method="tt_svd").fit_transform(t)
+                        print("tt.rank:",tt.rank)
+                        ttL.append(tt)
+                    ttResult = ttc.tt_join(ttL,toL,corL)
+                    time2 = time.time()
+                    tt_time = time2 - time1
+                    if dimNum == 1000:#Need improvement
+                        st.store_tensor([ttResult],[f"ttResult-{tNum}-{orderNum}-{dimNum}-{eps}"],path+"tt_storage/")
+                    PrintToTxt(filePath+"/",f"runningtime-eps={eps}.txt",\
+                        f"tNum={tNum}-orderNum={orderNum}-dimNum={dimNum}:\ntt_time:{tt_time}\nt_time:{t_time}\n","a").write_to_txt()
+                    resultList[f"{tNum}-{orderNum}-{dimNum}-{eps}"] = [tt_time,t_time]
     return resultList
-
-            
-
-
-
 
 
 def exp_fit():
@@ -48,8 +62,9 @@ def exp_fit():
 EXP_FUNS = ["runningtime","fit"]
 
 class Experiment():
-    def __init__(self, tList, toList, corList, tNumList, orderNumList, dimNumList, result="runningtime"):
+    def __init__(self, tList, epsList, toList, corList, tNumList, orderNumList, dimNumList, result="runningtime"):
         self.tList = tList
+        self.epsList = epsList
         self.toList = toList
         self.corList = corList
         self.tNumList = tNumList
@@ -66,23 +81,27 @@ class Experiment():
             raise ValueError(
                 f"Got method={self.result}. However, the possible choices are {EXP_FUNS} or to pass a callable."
             )
-        self.resultList = exp_fun(self.tList, self.toList, self.corList, self.tNumList,\
+        self.resultList = exp_fun(self.tList, self.epsList, self.toList, self.corList, self.tNumList,\
                                    self.orderNumList, self.dimNumList)
         
 
 
 if __name__ == "__main__":
-    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="bool"))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6),dtype="bool"))
-    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="bool")) 
-    t4 = tl.tensor(np.random.randint(0,2,(2,2,6,2),dtype="bool"))
-    t5 = tl.tensor(np.random.randint(0,2,(2,2,3,2),dtype="bool"))
-    tList = [t1,t2,t3,t4,t5]
-    toList = [0,0,1,0,1]
-    corList = [[],[[2,3],[4,5]],[[1,2],[1,3]],[[1,2],[1,5]],[[1,2],[0,1]]]
-    tNumList = [3,4,5]
-    orderNumList = [1,2]
+    # t1 = tl.tensor(np.random.randint(0,2,(2,1000,2,2,2,2),dtype="bool"))
+    # t2 = tl.tensor(np.random.randint(0,2,(2,1000,2,2),dtype="bool"))
+    # t3 = tl.tensor(np.random.randint(0,2,(2,2,2,2),dtype="bool")) 
+    # t4 = tl.tensor(np.random.randint(0,2,(2,2,2,2),dtype="bool"))
+    # t5 = tl.tensor(np.random.randint(0,2,(2,2,2,2),dtype="bool"))
+    # t6 = tl.tensor(np.random.randint(0,2,(2,2,2,2),dtype="bool"))
+    # tList = [t1,t2,t3,t4,t5,t6]
+    # st.store_tensor([t1,t2,t3,t4,t5,t6],["t1","t2","t3","t4","t5","t6"],path+"/t_storage/")
+    tList = st.load_tensor(["t1","t2","t3","t4","t5","t6"],path+"t_storage/")
+    toList = [0,0,1,0,1,3]
+    corList = [[],[[1,2,3],[1,3,5]],[[0,1,3],[0,2,3]],[[1,2,3],[0,2,5]],[[1,2,3],[0,2,3]],[[0,1,3],[1,2,3]]]
+    tNumList = [3,4,5,6]
+    orderNumList = [2,3]
     dimNumList = [200,400,600,800,1000]
-    exp = Experiment(tList, toList, corList, tNumList, orderNumList, dimNumList, result="runningtime")
+    epsList = [0.5,0.3,0.2,0.1,0]
+    exp = Experiment(tList, epsList, toList, corList, tNumList, orderNumList, dimNumList, result="runningtime")
     exp.experiment()
     print(exp.resultList)

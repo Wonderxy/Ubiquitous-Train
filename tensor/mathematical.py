@@ -31,7 +31,7 @@ def factors_kron(factorA, factorB):
     """
     shpA = factorA.shape
     shpB = factorB.shape
-    factors = np.zeros((shpA[0]*shpB[0], shpA[1], shpA[2]*shpB[2]))
+    factors = np.zeros((shpA[0]*shpB[0], shpA[1], shpA[2]*shpB[2]),dtype=bool)#8.16
     for i in range(factorA.shape[1]):
         factors[:,i,:] = np.kron(factorA[:,i,:], factorB[:,i,:])
     return factors

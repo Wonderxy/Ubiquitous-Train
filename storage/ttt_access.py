@@ -8,7 +8,7 @@ import numpy as np
 
 path = 'D:/Files/VisualStudioCode/TT2.0/Ubiquitous-Train/dataset'
 
-def stroe_tensor(tensorList,tensorNameList,path):
+def store_tensor(tensorList,tensorNameList,path):
     """Store in tensor form
 
     Parameters
@@ -92,12 +92,17 @@ def load_tt(ttNameList,path):
 
 
 if __name__ == "__main__":
-    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="int"))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6),dtype="int"))
-    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="int")) 
-    t4 = tl.tensor(np.random.randint(0,2,(2,2,1000,2),dtype="int"))
-    t5 = tl.tensor(np.random.randint(0,2,(2,3,6,2)))
+    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="bool"))
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6),dtype="bool"))
+    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="bool")) 
+    t4 = tl.tensor(np.random.randint(0,2,(2,2,6,2),dtype="bool"))
+    t5 = tl.tensor(np.random.randint(0,2,(2,2,3,2),dtype="bool"))
     tList = [t1,t2,t3,t4,t5]
+    # store_tensor(tList,["t1","t2","t3","t4","t5"],path+"/t_storage/")
+    
+    # newtensorList = load_tensor(["t1","t2","t3","t4","t5"],path+"/t_storage/")
+    # for i in range(len(newtensorList)):
+    #     print(newtensorList[i].shape)
     ttList = []
     for t in tList:
         tt = ttd.TensorTrain(rank=0,method="tt_svd").fit_transform(t) 

@@ -138,7 +138,7 @@ def tt_svd(input_tensor, rank, svd="truncated_svd", verbose=False):
         delta = rank/(np.sqrt(L-1))
         # R[i] = truncated(U,sigma,VT,C,delta)
         R[i] = truncated(sigma,delta*tl.norm(C))
-        print("R{}=".format(i),R[i])
+        # print("R{}=".format(i),R[i])
 
         U = U[:,:R[i]]
         sigma = np.diag(sigma[:R[i]])

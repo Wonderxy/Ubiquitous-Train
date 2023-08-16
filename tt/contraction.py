@@ -59,8 +59,8 @@ def padding_tensor(order,ttr):
     eT : ndarray/tl.tensor
         Padding tensor composed of identity matrix
     """
-    eM = np.eye(ttr)
-    eT = tl.tensor(np.zeros((ttr,order,ttr)))
+    eM = np.eye(ttr,dtype=bool)#8.16
+    eT = tl.tensor(np.zeros((ttr,order,ttr),dtype=bool))#8.16
     for i in range(order):
         eT[:,i,:] = eM 
     return eT
@@ -175,7 +175,7 @@ def kron_block(matrix,blocknum,ttr):
         splited_list.append(row_M)
     for i in range(col_b):
         for j in range(row_b):
-            splited_list[i][j] = np.kron(np.eye(ttr),splited_list[i][j])
+            splited_list[i][j] = np.kron(np.eye(ttr,dtype=bool),splited_list[i][j])#8.16
     colList = []
     for i in range(col_b):
         rowList = []
@@ -260,7 +260,7 @@ def tt_join_opt(ttList,toList,corList):
 
 
 if __name__ == "__main__":
-    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="int"))
+    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="bool"))
     t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6,7),dtype="int"))
     t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="int")) 
     t4 = tl.tensor(np.random.randint(0,2,(2,2,1000,2),dtype="int"))

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
+import numpy as np
 
 def graphSingle(xAxisList,yAxisList,legendList,xLabel,yLabel,title):
         '''
@@ -38,19 +39,18 @@ def graphMultiple(xAxisList,yAxisList,zAxisList,legendList,xLabel,yLabel,title,f
         for i in range(len(xAxisList)):#[[[]->legend,[]]->subplot]
             if len(xAxisList[i]) > 7:
                 raise ValueError("Can only draw up to 7 lines") 
-            posStr = str(len(zAxisList))+str(len(zAxisList))+str(i+1)
+            posStr = str(int(np.power(len(zAxisList),0.5))+1)+str(int(np.power(len(zAxisList),0.5))+1)+str(i+1)
             plt.subplot(int(posStr))
             graphSingle([xAxisList[i]],[yAxisList[i]],legendList,xLabel,yLabel,zAxisList[i])
         plt.gca().yaxis.set_minor_formatter(NullFormatter())
-        # plt.subplots_adjust(top=0.92, bottom=0.10, left=0.10, right=0.95, hspace=0.42,wspace=0.5)
+        plt.subplots_adjust(top=0.92, bottom=0.10, left=0.10, right=0.95, hspace=0.42,wspace=0.5)
         plt.tight_layout()
 
 class Plot:
-    def __init__(self,xAxisList,yAxisList,zAxis=[],layout="19"):
+    def __init__(self,xAxisList,yAxisList,zAxis=[]):
         self.xAxisList = xAxisList
         self.yAxisList = yAxisList
         self.zAxis = zAxis
-        self.layout = layout
 
     def singlePlot(self,legendList,xLabel,yLabel,title):
         graphSingle(self.xAxisList,self.yAxisList,legendList,xLabel,yLabel,title)

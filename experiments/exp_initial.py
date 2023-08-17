@@ -14,10 +14,11 @@ import tensor.mathematical as tm
 
 
 path = 'D:/Files/VisualStudioCode/TT2.0/datastorage/'
+printPath = "C:/Users/14619/Desktop/print/8.17/"
 
 def exp_runningtime(tList,epsList,toList,corList,tNumList,orderNumList,dimNumList):
     resultDict = {}
-    filePath = mkdir("C:/Users/14619/Desktop/print/8.17/",mode="now")
+    filePath = mkdir(printPath,mode="now")
     for tNum in tNumList:
         for orderNum in orderNumList:
             corL = copy.deepcopy(corList[:tNum])
@@ -59,7 +60,7 @@ def exp_runningtime(tList,epsList,toList,corList,tNumList,orderNumList,dimNumLis
 
 def exp_fit(tList, epsList, toList, corList, tNumList, orderNumList, dimNumList):
     fitDict = {}
-    filePath = mkdir("C:/Users/14619/Desktop/print/8.17/",mode="now")
+    filePath = mkdir(printPath,mode="now")
     for tNum in tNumList:
         for orderNum in orderNumList:
             tList = load_tensor([f"tResult-{tNum}-{orderNum}-1000"],path+"t_storage/")#Need improvement
@@ -71,6 +72,7 @@ def exp_fit(tList, epsList, toList, corList, tNumList, orderNumList, dimNumList)
                 fitDict[f"{tNum}-{orderNum}-{eps}"] = fit
                 PrintToTxt(filePath+"/",f"fit-eps={eps}.txt",\
                         f"tNum={tNum}-orderNum={orderNum}:\nfit:{fit}\n","a").write_to_txt()
+    return fitDict
 
 
 EXP_FUNS = ["runningtime","fit"]

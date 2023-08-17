@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 import numpy as np
+import math
 
 def graphSingle(xAxisList,yAxisList,legendList,xLabel,yLabel,title):
         '''
@@ -25,7 +26,7 @@ def graphSingle(xAxisList,yAxisList,legendList,xLabel,yLabel,title):
             plt.plot(xAxisList[0][i], yAxisList[0][i],formatList[i])
         plt.legend(legendList)
             
-def graphMultiple(xAxisList,yAxisList,zAxisList,legendList,xLabel,yLabel,title,figureSize):
+def graphMultiple(xAxisList,yAxisList,zAxisList,layout,legendList,xLabel,yLabel,title,figureSize):
         '''
         xAxisLsit:[[[]]]
         yAxisLsit:[[[1,2,3],[4,5,6],...,[legend]],...,[subplot]] -> plot
@@ -39,7 +40,10 @@ def graphMultiple(xAxisList,yAxisList,zAxisList,legendList,xLabel,yLabel,title,f
         for i in range(len(xAxisList)):#[[[]->legend,[]]->subplot]
             if len(xAxisList[i]) > 7:
                 raise ValueError("Can only draw up to 7 lines") 
-            posStr = str(int(np.power(len(zAxisList),0.5))+1)+str(int(np.power(len(zAxisList),0.5))+1)+str(i+1)
+            if layout == "":
+                posStr = str(math.ceil(np.power(len(zAxisList),0.5)))+str(math.ceil(np.power(len(zAxisList),0.5)))+str(i+1)
+            else:
+                posStr = layout+str(i+1)
             plt.subplot(int(posStr))
             graphSingle([xAxisList[i]],[yAxisList[i]],legendList,xLabel,yLabel,zAxisList[i])
         plt.gca().yaxis.set_minor_formatter(NullFormatter())
@@ -47,17 +51,18 @@ def graphMultiple(xAxisList,yAxisList,zAxisList,legendList,xLabel,yLabel,title,f
         plt.tight_layout()
 
 class Plot:
-    def __init__(self,xAxisList,yAxisList,zAxis=[]):
+    def __init__(self,xAxisList,yAxisList,zAxis=[],layout=""):
         self.xAxisList = xAxisList
         self.yAxisList = yAxisList
         self.zAxis = zAxis
+        self.layout = layout
 
     def singlePlot(self,legendList,xLabel,yLabel,title):
         graphSingle(self.xAxisList,self.yAxisList,legendList,xLabel,yLabel,title)
         plt.show()
 
     def multiPlot(self,legendList,xLabel,yLabel,title,figureSize=(6.4,4.8)):
-         graphMultiple(self.xAxisList,self.yAxisList,self.zAxis,legendList,xLabel,yLabel,title,figureSize)
+         graphMultiple(self.xAxisList,self.yAxisList,self.zAxis,self.layout,legendList,xLabel,yLabel,title,figureSize)
          plt.show()
     
 

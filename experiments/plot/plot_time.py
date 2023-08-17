@@ -27,7 +27,7 @@ def loadData(path):
             if dimNum == 2:
                 list3.append(float(getDictString(line)))
             if (lineNum+1)%15 == 0:
-                list1.append([list2,list3])
+                list1.append([list3,list2])
                 list2 = []
                 list3 = []
             lineNum += 1
@@ -36,14 +36,18 @@ def loadData(path):
 
 
 if __name__ == "__main__":
-    xList = [[["200","400","600","800","1000"] for j in range(2)] for i in range(8)]
-    print(xList)
-    yList = loadData(path+"/runningtime-eps=0.2.txt")
+    epsList = [0.5,0.3,0.2,0.1,0]
+    xList = [[["200","400","600","800","1000"] for j in range(6)] for i in range(8)]
+    yList = loadData(path+"/runningtime-eps=0.5.txt")
+    for eps in epsList[1:]:
+        yL = loadData(path+f"/runningtime-eps={eps}.txt")
+        for i in range(len(yList)):
+            yList[i].append(yL[i][1])
     zList = ["t=3 ord=2","t=3 ord=3","t=4 ord=2","t=4 ord=3","t=5 ord=2","t=5 ord=3","t=6 ord=2","t=6 ord=3"]
-    plot = Plot(xAxisList=xList,yAxisList=yList,zAxis=zList)
-    legendList = ["tt-join","t-join"]
+    plot = Plot(xAxisList=xList,yAxisList=yList,zAxis=zList,layout="24")
+    legendList = ["t-join","tt-0.5","tt-0.3","tt-0.2","tt-0.1","tt-0"]
     xLabel = "dimensions"
     yLabel = "runningtime"
-    title = "eps=0.1"
-    figureSize = (10,10)
+    title = "runningtime"
+    figureSize = (10,5)
     plot.multiPlot(legendList=legendList,xLabel=xLabel,yLabel=yLabel,title=title,figureSize=figureSize)

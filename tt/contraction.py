@@ -199,7 +199,6 @@ def tt_join_opt(ttList,toList,corList):
     print("joinTensorShape:",joinTensorShape)
 
     FinalPaddingList = padding_opt(ttList,FinalOrderList,toList,corList,shpList)#padding-->padding_opt
-    
     factorList = []
     for i in range(len(FinalPaddingList[0])):
         tNum = 0;ttr = 1;nNum = 0;isNum = 0

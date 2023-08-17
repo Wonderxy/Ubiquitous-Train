@@ -92,11 +92,11 @@ def load_tt(ttNameList,path):
 
 
 if __name__ == "__main__":
-    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="bool"))
-    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6),dtype="bool"))
-    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="bool")) 
-    t4 = tl.tensor(np.random.randint(0,2,(2,2,6,2),dtype="bool"))
-    t5 = tl.tensor(np.random.randint(0,2,(2,2,3,2),dtype="bool"))
+    t1 = tl.tensor(np.random.randint(0,2,(2,2,3,4,1000,6),dtype="int"))
+    t2 = tl.tensor(np.random.randint(0,2,(2,3,1000,6),dtype="int"))
+    t3 = tl.tensor(np.random.randint(0,2,(2,3,6,5),dtype="int")) 
+    t4 = tl.tensor(np.random.randint(0,2,(2,2,6,2),dtype="int"))
+    t5 = tl.tensor(np.random.randint(0,2,(2,2,3,2),dtype="int"))
     tList = [t1,t2,t3,t4,t5]
     # store_tensor(tList,["t1","t2","t3","t4","t5"],path+"/t_storage/")
     

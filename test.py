@@ -5,21 +5,13 @@ sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 import tensor.mathematical as tm
 import os
 import datetime
+import storage.ttt_access as st
 
-def mkdir(path):
-        folder = os.path.exists(path)
-        if not folder:
-            os.makedirs(path)           
-            print("---  new folder...  ---")
-            print("---  OK  ---")
-        else:
-            print("---  There is this folder!  ---") 
+path = 'D:/Files/VisualStudioCode/TT2.0/datastorage/'
 
 if __name__ == '__main__':
-    strtime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    # print(strtime.split("-"))
-    strlist = strtime.split("-")
-    
-    file = f"C:/Users/14619/Desktop/print/{strlist[1]}-{strlist[2]}"
-    mkdir(file)
+    ttList = st.load_tt([f"ttResult-3-2-1000-0"],path+"tt_storage/")
+    tList = st.load_tensor([f"tResult-3-2-1000"],path+"t_storage/")
+    fit = tm.fit(ttList[0].to_tensor(),tList)
+    print(fit)
 

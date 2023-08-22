@@ -229,7 +229,7 @@ def tensor_join(tList,toList,corList):
         joinTensorShape.append(shpList[site[0]][site[1]])
     print("joinTensorShape:",joinTensorShape)
     joinVector = tl.tensor(np.zeros(factorial_list(joinTensorShape)))#8.16
-    
+    print("create ok")
     num = int(factorial_list(joinTensorShape)/10)
     p=Pool(10)
     r1 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[0,num]))

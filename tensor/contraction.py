@@ -230,6 +230,7 @@ def tensor_join(tList,toList,corList):
     print("joinTensorShape:",joinTensorShape)
     joinVector = tl.tensor(np.zeros(factorial_list(joinTensorShape)))#8.16
     print("create ok")
+    #parallel coding
     num = int(factorial_list(joinTensorShape)/10)
     p=Pool(10)
     r1 = p.apply_async(Cor_multiply,args=(tList,toList,corList,shpList,FinalOrderList,joinVector,[0,num]))
@@ -245,7 +246,7 @@ def tensor_join(tList,toList,corList):
     p.close()
     p.join() 
     joinVector = r1.get()+r2.get()+r3.get()+r4.get()+r5.get()+r6.get()+r7.get()+r8.get()+r9.get()+r10.get()
-
+    joinTensor = tb.vec_to_tensor(joinVector,joinTensorShape)
     '''
     #Serial coding
     for index in range(factorial_list(joinTensorShape)):
@@ -263,8 +264,6 @@ def tensor_join(tList,toList,corList):
             result *= vector[vIndex]
         joinVector[index] = result
         '''
-    joinTensor = tb.vec_to_tensor(joinVector,joinTensorShape)
-
     return joinTensor 
  
 

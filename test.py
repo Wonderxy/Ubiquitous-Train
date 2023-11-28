@@ -14,4 +14,4 @@ if __name__ == '__main__':
     tList = st.load_tensor([f"tResult-3-2-1000"],path+"t_storage/")
     fit = tm.fit(ttList[0].to_tensor(),tList)
     print(fit)
-
+    #test

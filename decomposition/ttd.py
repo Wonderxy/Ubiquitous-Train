@@ -4,7 +4,7 @@ import numpy as np
 sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 from tensorly.decomposition._base_decomposition import DecompositionMixin
 from tt.tt_tensor import validate_tt_rank, TTTensor
-from tenalg.svd import svd_interface
+from tensor.svd import svd_interface
 
 
 def tensor_train(input_tensor, rank, svd="truncated_svd", verbose=False):

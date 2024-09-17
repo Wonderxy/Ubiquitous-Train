@@ -2,7 +2,6 @@ import tensorly as  tl
 import numpy as np
 from treelib import Tree,Node
 import sys
-sys.path.append('d:\\Files\\VisualStudioCode\\TT2.0\\Ubiquitous-Train')
 import tensor.base as tb
 from utils.forList import factorial_list
 import copy
